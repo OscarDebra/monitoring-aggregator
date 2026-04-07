@@ -4,6 +4,10 @@ import time
 import socket
 import os
 
+# Requirements:
+# pip install psutil requests
+# Windows only: pip install wmi
+
 # Configuration
 PI_URL = "http://pimonitor.local:8000"
 INTERVAL = 5  # seconds between updates
@@ -12,11 +16,21 @@ def get_machine_name():
     return socket.gethostname()
 
 def get_cpu_temp():
-    try:
-        with open("/sys/class/thermal/thermal_zone0/temp") as f:
-            return round(int(f.read()) / 1000, 1)
-    except:
-        return None
+    if os.name == "nt":  # Use wmi on windows to get cpu temp.
+        try:
+            import wmi
+            w = wmi.WMI(namespace="root\\wmi")
+            temps = w.MSAcpi_ThermalZoneTemperature()
+            return round(temps[0].CurrentTemperature / 10 - 273.15, 1)
+        except:
+            return None
+
+    else:  # Open the temp file to get cpu temp on Linux/Mac
+        try:
+            with open("/sys/class/thermal/thermal_zone0/temp") as f:
+                return round(int(f.read()) / 1000, 1)
+        except:
+            return None
 
 def collect_stats():
     ram = psutil.virtual_memory()
