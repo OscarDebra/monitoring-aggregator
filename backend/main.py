@@ -5,6 +5,7 @@ import sqlite3
 import json
 from datetime import datetime, timezone
 from pydantic import BaseModel
+from typing import Optional
 
 app = FastAPI()
 
@@ -16,7 +17,7 @@ app.add_middleware(
 )
 
 def get_db():
-    conn = sqlite3.connect("/data/stats.db")
+    conn = sqlite3.connect("stats.db")
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -39,7 +40,7 @@ def startup():
 
 class MachineStats(BaseModel):
     cpu_percent: float
-    cpu_temp: float | None
+    cpu_temp: Optional[float]
     ram_used: int
     ram_total: int
     ram_percent: float
